@@ -9,8 +9,8 @@ Keys = {
 }
 
 RegisterNetEvent('3dsounds:client:attach', function(data)
-    local net = data.object
-    local index = data.index
+    local net = data.args.object
+    local index = data.args.index
     RequestAnimationDict("pickup_object")
     TaskPlayAnim(PlayerPedId(), "pickup_object" ,"pickup_low" ,8.0, -8.0, -1, 1, 0, false, false, false )
     Citizen.Wait(1300)
@@ -70,7 +70,8 @@ AddEventHandler("holdingBoombox", function(net)
             end
 
 			if inZone and not alreadyEnteredZone then
-				TriggerEvent('mnm_notify_client:showNotification', icon, header, text, footer, true)
+                QBCore.Functions.Notify("[E] to put down Boombox", "success")
+				--TriggerEvent('mnm_notify_client:showNotification', icon, header, text, footer, true)
 				alreadyEnteredZone = true
 			end
 
@@ -117,7 +118,9 @@ AddEventHandler("3dsounds:client:placeBoombox", function()
                 event = "qb-boombox:client:putAwayBoombox",
                 icon = "fas fa-question",
                 label = "Put Away",
-                object = NetworkGetNetworkIdFromEntity(object),
+                args = {
+                    object = NetworkGetNetworkIdFromEntity(object),
+                },
             },
             {
                 name = "3dsounds_"..object, 
@@ -125,7 +128,9 @@ AddEventHandler("3dsounds:client:placeBoombox", function()
                 event = "3dsounds:client:boomBoxMenu",
                 icon = "fas fa-question",
                 label = "Boombox Menu",
-                object = NetworkGetNetworkIdFromEntity(object),
+                args = {
+                    object = NetworkGetNetworkIdFromEntity(object),
+                },
             },
             {
                 name = "3dsounds_"..object, 
@@ -133,7 +138,9 @@ AddEventHandler("3dsounds:client:placeBoombox", function()
                 event = "3dsounds:client:attach",
                 icon = "fas fa-question",
                 label = "Pickup",
-                object = NetworkGetNetworkIdFromEntity(object),
+                args = {
+                    object = NetworkGetNetworkIdFromEntity(object),
+                },
             },
             
         },
@@ -143,7 +150,7 @@ end)
 
 RegisterNetEvent("3dsounds:client:boomBoxMenu")
 AddEventHandler("3dsounds:client:boomBoxMenu", function(data)
-    local object = data.object
+    local object = data.args.object
     local boomboxMenu = {
         {
             header = 'Boombox',
@@ -158,7 +165,7 @@ AddEventHandler("3dsounds:client:boomBoxMenu", function(data)
             params = {
                 event = 'qb-boombox:client:pauseBoombox',
                 args = {
-                    object = object,
+                    object = NetworkGetNetworkIdFromEntity(object),
                 },
             }
         },
@@ -168,7 +175,7 @@ AddEventHandler("3dsounds:client:boomBoxMenu", function(data)
             params = {
                 event = 'qb-boombox:client:resumeBoombox',
                 args = {
-                    object = object,
+                    object = NetworkGetNetworkIdFromEntity(object),
                 },
             }
         },
@@ -178,7 +185,7 @@ AddEventHandler("3dsounds:client:boomBoxMenu", function(data)
             params = {
                 event = 'qb-boombox:client:stopBoombox',
                 args = {
-                    object = object,
+                    object = NetworkGetNetworkIdFromEntity(object),
                 },
             }
         },
@@ -187,13 +194,13 @@ AddEventHandler("3dsounds:client:boomBoxMenu", function(data)
         if Config.SongsList[v.name] ~= nil then
             boomboxMenu[#boomboxMenu + 1] = {
                 header = 'Play '..Config.SongsList[v.name]['song'],
-                txt = 'Artist :'..Config.SongsList[v.name]['artist'],
+                txt = 'Artist: '..Config.SongsList[v.name]['artist'],
                 params = {
                 event = 'qb-boombox:client:playBoombox',
                 args = {
                     song = Config.SongsList[v.name]['file'],
-                    object = data.object,
-                } 
+                    object = object,
+                    } 
                 }
             }
         end
@@ -210,17 +217,20 @@ AddEventHandler("qb-boombox:client:playBoombox", function(data)
 end)
 
 RegisterNetEvent("qb-boombox:client:resumeBoombox")
-AddEventHandler("qb-boombox:client:resumeBoombox", function(object)
+AddEventHandler("qb-boombox:client:resumeBoombox", function(data)
+    local object = data.object
     TriggerServerEvent("qb-boombox:server:resumeBoombox", object)
 end)
 
 RegisterNetEvent("qb-boombox:client:stopBoombox")
-AddEventHandler("qb-boombox:client:stopBoombox", function(object)
+AddEventHandler("qb-boombox:client:stopBoombox", function(data)
+    local object = data.object
     TriggerServerEvent("qb-boombox:server:stopBoombox", object)
 end)
 
 RegisterNetEvent("qb-boombox:client:pauseBoombox")
-AddEventHandler("qb-boombox:client:pauseBoombox", function(object)
+AddEventHandler("qb-boombox:client:pauseBoombox", function(data)
+    local object = data.object
     TriggerServerEvent("qb-boombox:server:pauseBoombox", object)
 end)
 
@@ -229,7 +239,7 @@ RegisterNetEvent("qb-boombox:client:putAwayBoombox")
 AddEventHandler("qb-boombox:client:putAwayBoombox", function(data)
     QBCore.Functions.TriggerCallback('qb-boombox:server:putAwayBoombox', function(result)
         if result then
-            local net = data.object
+            local net = data.args.object
             RequestAnimationDict("pickup_object")
             TaskPlayAnim(PlayerPedId(), "pickup_object" ,"pickup_low" ,8.0, -8.0, -1, 1, 0, false, false, false )
             Citizen.Wait(1300)
