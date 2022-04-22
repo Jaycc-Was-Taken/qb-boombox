@@ -144,24 +144,61 @@ end)
 RegisterNetEvent("3dsounds:client:boomBoxMenu")
 AddEventHandler("3dsounds:client:boomBoxMenu", function(data)
     local object = data.object
-    exports['qb-menu']:SetTitle("Available Tapes")
-
-    for k, v in pairs(QBCore.Functions.GetPlayerData().items) do
+    local boomboxMenu = {
+        {
+            header = 'Boombox',
+            txt = 'Close.',
+            params = {
+                event = 'qb-menu:client:closeMenu',
+            }
+        },
+        {
+            header = 'Pause',
+            txt = 'Pause the music.',
+            params = {
+                event = 'qb-boombox:client:pauseBoombox',
+                args = {
+                    object = object,
+                },
+            }
+        },
+        {
+            header = 'Resume',
+            txt = 'Resume the music.',
+            params = {
+                event = 'qb-boombox:client:resumeBoombox',
+                args = {
+                    object = object,
+                },
+            }
+        },
+        {
+            header = 'Eject',
+            txt = 'Eject the tape.',
+            params = {
+                event = 'qb-boombox:client:stopBoombox',
+                args = {
+                    object = object,
+                },
+            }
+        },
+    }
+    for k,v in pairs(QBCore.Functions.GetPlayerData().items) do
         if Config.SongsList[v.name] ~= nil then
-            exports['qb-menu']:AddButton('Play "' .. Config.SongsList[v.name]["song"] ..'"', 'By ' .. Config.SongsList[v.name]["artist"], 'client', 'qb-boombox:client:playBoombox', {song = Config.SongsList[v.name]["file"], object = data.object}, 'songList', v.name)
+            boomboxMenu[#boomboxMenu + 1] = {
+                header = 'Play '..Config.SongsList[v.name]['song'],
+                txt = 'Artist :'..Config.SongsList[v.name]['artist'],
+                params = {
+                event = 'qb-boombox:client:playBoombox',
+                args = {
+                    song = Config.SongsList[v.name]['file'],
+                    object = data.object,
+                } 
+                }
+            }
         end
     end
-
-    --if Sounds[object] ~= nil or Sounds[data.object].playing then
-        exports['qb-menu']:AddButton("Pause", "Pause the music", 'client', 'qb-boombox:client:pauseBoombox', data.object, 'controls', 1)
-        exports['qb-menu']:AddButton("Resume", "Resume the music", 'client', 'qb-boombox:client:resumeBoombox', data.object, 'controls', 2)
-        exports['qb-menu']:AddButton("Eject", "Eject the tape", 'client', 'qb-boombox:client:stopBoombox', data.object, 'controls', 3)
-    --else
-        --exports['qb-menu']:AddButton("N/A", "Nothing playing..", '', '', '', 'controls', 1)
-    --end
-
-    exports['qb-menu']:SubMenu("Tapes" , "Available tapes in your pockets" , "songList" )
-    exports['qb-menu']:SubMenu("Boombox Controls" , "Play, Stop, Volume controls" , "controls" )
+    exports['qb-menu']:openMenu(boomboxMenu)
 end)
 
 RegisterNetEvent("qb-boombox:client:playBoombox")
